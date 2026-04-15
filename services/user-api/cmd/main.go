@@ -35,11 +35,10 @@ func main() {
 	}
 
 	// Initialize logger
-	logger := logging.New(cfg.Logging.Level, cfg.Logging.Format)
+	logger := logging.New(cfg.Logging.Level, cfg.Logging.Format, cfg.Service.Name)
 	defer logger.Sync()
 
 	logger.Info("starting user-api service",
-		zap.String("service", cfg.Service.Name),
 		zap.String("env", cfg.Service.Env),
 	)
 
@@ -84,8 +83,8 @@ func main() {
 	// Create gRPC server with interceptors
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(middleware.ChainUnaryInterceptors(
-			middleware.RecoveryInterceptor(logger.Logger),
-			middleware.LoggerInterceptor(logger.Logger),
+			middleware.RecoveryInterceptor(logger),
+			middleware.LoggerInterceptor(logger),
 		)),
 	)
 

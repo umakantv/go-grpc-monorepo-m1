@@ -3,6 +3,7 @@ module github.com/yourorg/monorepo/pkg
 go 1.22
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.12.3
 	github.com/spf13/viper v1.18.2
 	go.uber.org/zap v1.27.0

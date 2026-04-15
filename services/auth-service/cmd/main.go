@@ -29,11 +29,10 @@ func main() {
 	}
 
 	// Initialize logger
-	logger := logging.New(cfg.Logging.Level, cfg.Logging.Format)
+	logger := logging.New(cfg.Logging.Level, cfg.Logging.Format, cfg.Service.Name)
 	defer logger.Sync()
 
 	logger.Info("starting auth-service",
-		zap.String("service", cfg.Service.Name),
 		zap.String("env", cfg.Service.Env),
 	)
 
@@ -64,8 +63,8 @@ func main() {
 	// Note: No HTTP gateway for internal services
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(middleware.ChainUnaryInterceptors(
-			middleware.RecoveryInterceptor(logger.Logger),
-			middleware.LoggerInterceptor(logger.Logger),
+			middleware.RecoveryInterceptor(logger),
+			middleware.LoggerInterceptor(logger),
 		)),
 	)
 

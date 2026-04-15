@@ -5,6 +5,7 @@ import (
 	"time"
 
 	auth "github.com/yourorg/monorepo/gen/go/private/auth"
+	"github.com/yourorg/monorepo/pkg/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -15,12 +16,13 @@ type Client struct {
 	client auth.AuthServiceClient
 }
 
-// New creates a new auth service client
+// New creates a new auth service client with trace propagation enabled
 func New(addr string) (*Client, error) {
 	conn, err := grpc.Dial(
 		addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithTimeout(5*time.Second),
+		grpc.WithUnaryInterceptor(middleware.PropagationInterceptor()),
 	)
 	if err != nil {
 		return nil, err
