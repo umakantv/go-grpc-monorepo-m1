@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package private.payment;
+
+option go_package = "github.com/yourorg/monorepo/gen/go/private/payment;payment";
+
+import "google/protobuf/timestamp.proto";
+
+// PaymentService provides internal payment operations
+// This service is NOT exposed via HTTP - gRPC only
+service PaymentService {
+  // ProcessPayment processes a payment for an order
+  rpc ProcessPayment(ProcessPaymentRequest) returns (ProcessPaymentResponse);
+  
+  // RefundPayment refunds a payment
+  rpc RefundPayment(RefundPaymentRequest) returns (RefundPaymentResponse);
+  
+  // GetPaymentStatus retrieves the status of a payment
+  rpc GetPaymentStatus(GetPaymentStatusRequest) returns (GetPaymentStatusResponse);
+}
+
+message Payment {
+  string payment_id = 1;
+  string user_id = 2;
+  string order_id = 3;
+  double amount = 4;
+  string currency = 5;
+  PaymentStatus status = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_STATUS_PENDING = 1;
+  PAYMENT_STATUS_COMPLETED = 2;
+  PAYMENT_STATUS_FAILED = 3;
+  PAYMENT_STATUS_REFUNDED = 4;
+}
+
+message ProcessPaymentRequest {
+  string user_id = 1;
+  string order_id = 2;
+  double amount = 3;
+  string currency = 4;
+  string payment_method_id = 5;
+}
+
+message ProcessPaymentResponse {
+  Payment payment = 1;
+  string client_secret = 2;
+}
+
+message RefundPaymentRequest {
+  string payment_id = 1;
+  double amount = 2;
+  string reason = 3;
+}
+
+message RefundPaymentResponse {
+  Payment payment = 1;
+  double refunded_amount = 2;
+}
+
+message GetPaymentStatusRequest {
+  string payment_id = 1;
+}
+
+message GetPaymentStatusResponse {
+  Payment payment = 1;
+}

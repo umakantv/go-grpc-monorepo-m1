@@ -1,0 +1,27 @@
+service:
+  name: user-api
+  env: development
+
+grpc:
+  port: 9090
+
+http:
+  enabled: true
+  port: 8080
+
+logging:
+  level: debug
+  format: console
+
+database:
+  enabled: true
+  driver: postgres
+  host: localhost
+  port: 5432
+  name: userdb
+  user: postgres
+  password: postgres
+  ssl_mode: disable
+
+auth:
+  service_addr: localhost:9091

@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package private.auth;
+
+option go_package = "github.com/yourorg/monorepo/gen/go/private/auth;auth";
+
+import "google/protobuf/timestamp.proto";
+
+// AuthService provides internal authentication operations
+// This service is NOT exposed via HTTP - gRPC only
+service AuthService {
+  // ValidateToken validates a JWT token and returns user info
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+  
+  // GenerateToken generates a new JWT token for a user
+  rpc GenerateToken(GenerateTokenRequest) returns (GenerateTokenResponse);
+  
+  // RefreshToken refreshes an existing token
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  
+  // RevokeToken revokes a token (for logout)
+  rpc RevokeToken(RevokeTokenRequest) returns (RevokeTokenResponse);
+}
+
+message TokenInfo {
+  string user_id = 1;
+  string email = 2;
+  repeated string roles = 3;
+  google.protobuf.Timestamp expires_at = 4;
+}
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
+  bool valid = 1;
+  TokenInfo token_info = 2;
+  string error_message = 3;
+}
+
+message GenerateTokenRequest {
+  string user_id = 1;
+  string email = 2;
+  repeated string roles = 3;
+  int32 expires_in_seconds = 4;
+}
+
+message GenerateTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+message RevokeTokenRequest {
+  string token = 1;
+}
+
+message RevokeTokenResponse {
+  bool success = 1;
+}

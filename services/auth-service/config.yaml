@@ -1,0 +1,29 @@
+service:
+  name: auth-service
+  env: development
+
+grpc:
+  port: 9091
+
+http:
+  enabled: false  # Internal service - no HTTP endpoint
+
+logging:
+  level: debug
+  format: console
+
+database:
+  enabled: true
+  driver: postgres
+  host: localhost
+  port: 5432
+  name: authdb
+  user: postgres
+  password: postgres
+  ssl_mode: disable
+
+jwt:
+  secret: your-super-secret-key-change-in-production
+  access_token_ttl: 3600      # 1 hour
+  refresh_token_ttl: 604800   # 7 days
+  issuer: yourorg-monorepo
