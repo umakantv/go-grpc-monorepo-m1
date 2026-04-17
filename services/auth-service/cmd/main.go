@@ -1,16 +1,20 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	auth "github.com/yourorg/monorepo/gen/go/private/auth"
 	pkgdb "github.com/yourorg/monorepo/pkg/database"
 	"github.com/yourorg/monorepo/pkg/logging"
+	"github.com/yourorg/monorepo/pkg/metrics"
 	"github.com/yourorg/monorepo/pkg/middleware"
 	"github.com/yourorg/monorepo/services/auth-service/internal/config"
 	"github.com/yourorg/monorepo/services/auth-service/internal/repository"
@@ -59,13 +63,41 @@ func main() {
 	repo := repository.NewRepository(db)
 	authService := service.NewAuthService(repo, &cfg.JWT, logger.Logger)
 
+	// Initialize metrics
+	var appMetrics *metrics.Metrics
+	var metricsServer *http.Server
+	if cfg.Metrics.Enabled {
+		appMetrics = metrics.New(metrics.Config{
+			Namespace: cfg.Service.Name,
+		})
+		logger.Info("metrics initialized")
+
+		// Start metrics HTTP server
+		metricsServer = &http.Server{
+			Addr:    fmt.Sprintf(":%d", cfg.Metrics.Port),
+			Handler: appMetrics.Handler(),
+		}
+		go func() {
+			logger.Info("metrics server listening", zap.Int("port", cfg.Metrics.Port))
+			if err := metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				logger.Fatal("metrics server error", zap.Error(err))
+			}
+		}()
+	}
+
 	// Create gRPC server with interceptors
 	// Note: No HTTP gateway for internal services
+	var grpcInterceptors []grpc.UnaryServerInterceptor
+	if appMetrics != nil {
+		grpcInterceptors = append(grpcInterceptors, appMetrics.GRPCInterceptor())
+	}
+	grpcInterceptors = append(grpcInterceptors,
+		middleware.RecoveryInterceptor(logger),
+		middleware.LoggerInterceptor(logger),
+	)
+
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(middleware.ChainUnaryInterceptors(
-			middleware.RecoveryInterceptor(logger),
-			middleware.LoggerInterceptor(logger),
-		)),
+		grpc.UnaryInterceptor(middleware.ChainUnaryInterceptors(grpcInterceptors...)),
 	)
 
 	// Register services
@@ -96,6 +128,14 @@ func main() {
 
 	// Graceful shutdown
 	grpcServer.GracefulStop()
+
+	if metricsServer != nil {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := metricsServer.Shutdown(shutdownCtx); err != nil {
+			logger.Error("metrics server shutdown error", zap.Error(err))
+		}
+	}
 
 	logger.Info("server stopped")
 }

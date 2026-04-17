@@ -14,6 +14,7 @@ type Config struct {
 	HTTP     HTTPConfig     `mapstructure:"http"`
 	Logging  LoggingConfig  `mapstructure:"logging"`
 	Database DatabaseConfig `mapstructure:"database"`
+	Metrics  MetricsConfig  `mapstructure:"metrics"`
 }
 
 // ServiceConfig contains service-level configuration
@@ -49,6 +50,13 @@ type DatabaseConfig struct {
 	User     string `mapstructure:"user"`
 	Password string `mapstructure:"password"`
 	SSLMode  string `mapstructure:"ssl_mode"`
+}
+
+// MetricsConfig contains metrics configuration
+type MetricsConfig struct {
+	Enabled bool   `mapstructure:"enabled"`
+	Port    int    `mapstructure:"port"`
+	Path    string `mapstructure:"path"`
 }
 
 // Load loads configuration from file and environment variables
@@ -100,4 +108,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("database.host", "localhost")
 	v.SetDefault("database.port", 5432)
 	v.SetDefault("database.ssl_mode", "disable")
+	v.SetDefault("metrics.enabled", true)
+	v.SetDefault("metrics.port", 9091)
+	v.SetDefault("metrics.path", "/metrics")
 }

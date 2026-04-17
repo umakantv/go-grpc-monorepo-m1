@@ -17,6 +17,7 @@ import (
 	"github.com/yourorg/monorepo/pkg/config"
 	pkgdb "github.com/yourorg/monorepo/pkg/database"
 	"github.com/yourorg/monorepo/pkg/logging"
+	"github.com/yourorg/monorepo/pkg/metrics"
 	"github.com/yourorg/monorepo/pkg/middleware"
 	"github.com/yourorg/monorepo/services/user-api/internal/repository"
 	"github.com/yourorg/monorepo/services/user-api/internal/service"
@@ -80,12 +81,40 @@ func main() {
 	repo := repository.NewRepository(db)
 	userService := service.NewUserService(repo, authClient, logger.Logger)
 
+	// Initialize metrics
+	var appMetrics *metrics.Metrics
+	var metricsServer *http.Server
+	if cfg.Metrics.Enabled {
+		appMetrics = metrics.New(metrics.Config{
+			Namespace: cfg.Service.Name,
+		})
+		logger.Info("metrics initialized")
+
+		// Start metrics HTTP server
+		metricsServer = &http.Server{
+			Addr:    fmt.Sprintf(":%d", cfg.Metrics.Port),
+			Handler: appMetrics.Handler(),
+		}
+		go func() {
+			logger.Info("metrics server listening", zap.Int("port", cfg.Metrics.Port))
+			if err := metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				logger.Fatal("metrics server error", zap.Error(err))
+			}
+		}()
+	}
+
 	// Create gRPC server with interceptors
+	var grpcInterceptors []grpc.UnaryServerInterceptor
+	if appMetrics != nil {
+		grpcInterceptors = append(grpcInterceptors, appMetrics.GRPCInterceptor())
+	}
+	grpcInterceptors = append(grpcInterceptors,
+		middleware.RecoveryInterceptor(logger),
+		middleware.LoggerInterceptor(logger),
+	)
+
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(middleware.ChainUnaryInterceptors(
-			middleware.RecoveryInterceptor(logger),
-			middleware.LoggerInterceptor(logger),
-		)),
+		grpc.UnaryInterceptor(middleware.ChainUnaryInterceptors(grpcInterceptors...)),
 	)
 
 	// Register services
@@ -118,9 +147,18 @@ func main() {
 			logger.Fatal("failed to register gRPC gateway", zap.Error(err))
 		}
 
+		// Wrap handler with metrics middleware
+		handler := http.Handler(mux)
+		if appMetrics != nil {
+			// Create pattern registry and register gateway patterns
+			registry := metrics.NewPatternRegistry()
+			registry.RegisterAll(userv1.GatewayPatterns())
+			handler = appMetrics.HTTPMiddlewareWithRegistry(registry)(handler)
+		}
+
 		httpServer = &http.Server{
 			Addr:    fmt.Sprintf(":%d", cfg.HTTP.Port),
-			Handler: mux,
+			Handler: handler,
 		}
 
 		go func() {
@@ -146,6 +184,14 @@ func main() {
 		defer cancel()
 		if err := httpServer.Shutdown(shutdownCtx); err != nil {
 			logger.Error("HTTP server shutdown error", zap.Error(err))
+		}
+	}
+
+	if metricsServer != nil {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := metricsServer.Shutdown(shutdownCtx); err != nil {
+			logger.Error("metrics server shutdown error", zap.Error(err))
 		}
 	}
 
