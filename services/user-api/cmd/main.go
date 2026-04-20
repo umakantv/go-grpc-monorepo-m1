@@ -54,6 +54,7 @@ func main() {
 			User:     cfg.Database.User,
 			Password: cfg.Database.Password,
 			SSLMode:  cfg.Database.SSLMode,
+			Path:     cfg.Database.Path,
 		})
 		if err != nil {
 			logger.Fatal("failed to connect to database", zap.Error(err))

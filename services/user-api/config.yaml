@@ -15,13 +15,15 @@ logging:
 
 database:
   enabled: true
-  driver: postgres
+  driver: postgres # or "sqlite" for local dev/test
   host: localhost
   port: 5432
   name: userdb
   user: postgres
   password: postgres
   ssl_mode: disable
+  # path: ":memory:"   # for in-memory SQLite (test)
+  # path: ./data/user.db # for file-based SQLite (local dev)
 
 auth:
   service_addr: localhost:9091

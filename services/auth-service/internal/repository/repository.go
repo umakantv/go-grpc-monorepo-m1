@@ -107,7 +107,7 @@ func (r *Repository) RevokeAllUserTokens(ctx context.Context, userID string) err
 
 // CleanupExpiredTokens removes expired tokens from the database
 func (r *Repository) CleanupExpiredTokens(ctx context.Context) error {
-	query := `DELETE FROM tokens WHERE expires_at < NOW()`
+	query := `DELETE FROM tokens WHERE expires_at < CURRENT_TIMESTAMP`
 
 	_, err := r.db.ExecContext(ctx, query)
 	if err != nil {

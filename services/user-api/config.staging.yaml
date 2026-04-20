@@ -1,0 +1,22 @@
+service:
+  name: user-api
+  env: development
+
+grpc:
+  port: 9090
+
+http:
+  enabled: true
+  port: 8081
+
+logging:
+  level: debug
+  format: json
+
+database:
+  enabled: true
+  driver: sqlite
+  path: ./data/user.db
+
+auth:
+  service_addr: localhost:9091

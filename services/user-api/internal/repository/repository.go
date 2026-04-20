@@ -100,7 +100,7 @@ func (r *Repository) Create(ctx context.Context, email, name, passwordHash strin
 // Update updates a user
 func (r *Repository) Update(ctx context.Context, id string, updates map[string]interface{}) (*User, error) {
 	// Build dynamic update query
-	query := `UPDATE users SET updated_at = NOW()`
+	query := `UPDATE users SET updated_at = CURRENT_TIMESTAMP`
 	args := []interface{}{id}
 	argIdx := 2
 

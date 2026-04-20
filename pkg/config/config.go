@@ -50,6 +50,7 @@ type DatabaseConfig struct {
 	User     string `mapstructure:"user"`
 	Password string `mapstructure:"password"`
 	SSLMode  string `mapstructure:"ssl_mode"`
+	Path     string `mapstructure:"path"` // for SQLite file path or ":memory:"
 }
 
 // MetricsConfig contains metrics configuration
@@ -59,7 +60,9 @@ type MetricsConfig struct {
 	Path    string `mapstructure:"path"`
 }
 
-// Load loads configuration from file and environment variables
+// Load loads configuration from file and environment variables.
+// It first loads the base config (e.g. config.yaml), then overlays
+// an environment-specific file (config.{env}.yaml) if present.
 func Load(configPath string, configName string) (*Config, error) {
 	v := viper.New()
 
@@ -75,12 +78,29 @@ func Load(configPath string, configName string) (*Config, error) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 
-	// Read config file
+	// Read base config file first
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return nil, fmt.Errorf("error reading config file: %w", err)
 		}
-		// Config file not found, use defaults and env vars
+		// Config file not found, continue with defaults and env vars
+	}
+
+	// Determine app environment for optional overlay config
+	appEnv := v.GetString("APP_ENV")
+	if appEnv == "" {
+		appEnv = v.GetString("service.env")
+	}
+
+	// Try to merge environment-specific config (e.g. config.production.yaml)
+	if appEnv != "" {
+		v.SetConfigName(configName + "." + appEnv)
+		if err := v.MergeInConfig(); err != nil {
+			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+				return nil, fmt.Errorf("error reading env config file: %w", err)
+			}
+			// Env-specific file not found is fine — just use base
+		}
 	}
 
 	var cfg Config

@@ -167,6 +167,52 @@ database:
   password: postgres
 ```
 
+### Environment-Specific Configs
+
+The config loader first reads the base `config.yaml`, then overlays `config.{env}.yaml` if present.
+
+Set the environment via the `APP_ENV` environment variable or the `service.env` field:
+
+```bash
+# Load config.production.yaml on top of config.yaml
+APP_ENV=production ./user-api
+```
+
+This allows keeping common defaults in `config.yaml` and environment-specific overrides in separate files (e.g. `config.production.yaml`, `config.staging.yaml`).
+
+Environment variables always take highest precedence (e.g. `DATABASE_HOST=...`).
+
+### Database Drivers
+
+The `database.driver` setting controls the backend:
+
+- `postgres` (default): Uses lib/pq with host/port/user/password config
+- `sqlite`: Uses modernc.org/sqlite
+
+For SQLite:
+- `path: ":memory:"` → in-memory database (ideal for tests)
+- `path: ./data/app.db` → file-based database (local development)
+
+Example for local development:
+
+```yaml
+database:
+  enabled: true
+  driver: sqlite
+  path: ./data/user.db
+```
+
+Example for tests:
+
+```yaml
+database:
+  enabled: true
+  driver: sqlite
+  path: ":memory:"
+```
+
+Environment variables still override all fields.
+
 ## Adding a New Service
 
 ### 1. Create Proto Definition
