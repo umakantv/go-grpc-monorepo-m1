@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_ValidateToken_FullMethodName = "/private.auth.AuthService/ValidateToken"
-	AuthService_GenerateToken_FullMethodName = "/private.auth.AuthService/GenerateToken"
-	AuthService_RefreshToken_FullMethodName  = "/private.auth.AuthService/RefreshToken"
-	AuthService_RevokeToken_FullMethodName   = "/private.auth.AuthService/RevokeToken"
+	AuthService_ValidateToken_FullMethodName       = "/private.auth.AuthService/ValidateToken"
+	AuthService_GenerateToken_FullMethodName       = "/private.auth.AuthService/GenerateToken"
+	AuthService_RefreshToken_FullMethodName        = "/private.auth.AuthService/RefreshToken"
+	AuthService_RevokeToken_FullMethodName         = "/private.auth.AuthService/RevokeToken"
+	AuthService_VerifyFirebaseToken_FullMethodName = "/private.auth.AuthService/VerifyFirebaseToken"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -40,6 +41,9 @@ type AuthServiceClient interface {
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	// RevokeToken revokes a token (for logout)
 	RevokeToken(ctx context.Context, in *RevokeTokenRequest, opts ...grpc.CallOption) (*RevokeTokenResponse, error)
+	// VerifyFirebaseToken verifies a Firebase ID token, finds/creates the user,
+	// and returns our own JWT access + refresh tokens.
+	VerifyFirebaseToken(ctx context.Context, in *VerifyFirebaseTokenRequest, opts ...grpc.CallOption) (*VerifyFirebaseTokenResponse, error)
 }
 
 type authServiceClient struct {
@@ -90,6 +94,16 @@ func (c *authServiceClient) RevokeToken(ctx context.Context, in *RevokeTokenRequ
 	return out, nil
 }
 
+func (c *authServiceClient) VerifyFirebaseToken(ctx context.Context, in *VerifyFirebaseTokenRequest, opts ...grpc.CallOption) (*VerifyFirebaseTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(VerifyFirebaseTokenResponse)
+	err := c.cc.Invoke(ctx, AuthService_VerifyFirebaseToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -105,6 +119,9 @@ type AuthServiceServer interface {
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	// RevokeToken revokes a token (for logout)
 	RevokeToken(context.Context, *RevokeTokenRequest) (*RevokeTokenResponse, error)
+	// VerifyFirebaseToken verifies a Firebase ID token, finds/creates the user,
+	// and returns our own JWT access + refresh tokens.
+	VerifyFirebaseToken(context.Context, *VerifyFirebaseTokenRequest) (*VerifyFirebaseTokenResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -126,6 +143,9 @@ func (UnimplementedAuthServiceServer) RefreshToken(context.Context, *RefreshToke
 }
 func (UnimplementedAuthServiceServer) RevokeToken(context.Context, *RevokeTokenRequest) (*RevokeTokenResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RevokeToken not implemented")
+}
+func (UnimplementedAuthServiceServer) VerifyFirebaseToken(context.Context, *VerifyFirebaseTokenRequest) (*VerifyFirebaseTokenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method VerifyFirebaseToken not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -220,6 +240,24 @@ func _AuthService_RevokeToken_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_VerifyFirebaseToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyFirebaseTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).VerifyFirebaseToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_VerifyFirebaseToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).VerifyFirebaseToken(ctx, req.(*VerifyFirebaseTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -242,6 +280,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RevokeToken",
 			Handler:    _AuthService_RevokeToken_Handler,
+		},
+		{
+			MethodName: "VerifyFirebaseToken",
+			Handler:    _AuthService_VerifyFirebaseToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

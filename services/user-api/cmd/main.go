@@ -17,6 +17,7 @@ import (
 	"github.com/yourorg/monorepo/pkg/config"
 	pkgdb "github.com/yourorg/monorepo/pkg/database"
 	"github.com/yourorg/monorepo/pkg/logging"
+	pkgmigrate "github.com/yourorg/monorepo/pkg/migrate"
 	"github.com/yourorg/monorepo/pkg/metrics"
 	"github.com/yourorg/monorepo/pkg/middleware"
 	"github.com/yourorg/monorepo/services/user-api/internal/repository"
@@ -61,6 +62,12 @@ func main() {
 		}
 		defer db.Close()
 		logger.Info("connected to database")
+
+		// Run database migrations.
+		if err := pkgmigrate.Up(db, cfg.Database.Driver, "migrations"); err != nil {
+			logger.Fatal("failed to run database migrations", zap.Error(err))
+		}
+		logger.Info("database migrations applied")
 	}
 
 	// Initialize auth service client

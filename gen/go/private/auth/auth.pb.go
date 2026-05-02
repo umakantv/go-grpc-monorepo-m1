@@ -514,6 +514,218 @@ func (x *RevokeTokenResponse) GetSuccess() bool {
 	return false
 }
 
+type VerifyFirebaseTokenRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	FirebaseIdToken string                 `protobuf:"bytes,1,opt,name=firebase_id_token,json=firebaseIdToken,proto3" json:"firebase_id_token,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *VerifyFirebaseTokenRequest) Reset() {
+	*x = VerifyFirebaseTokenRequest{}
+	mi := &file_private_auth_auth_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VerifyFirebaseTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VerifyFirebaseTokenRequest) ProtoMessage() {}
+
+func (x *VerifyFirebaseTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_private_auth_auth_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VerifyFirebaseTokenRequest.ProtoReflect.Descriptor instead.
+func (*VerifyFirebaseTokenRequest) Descriptor() ([]byte, []int) {
+	return file_private_auth_auth_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *VerifyFirebaseTokenRequest) GetFirebaseIdToken() string {
+	if x != nil {
+		return x.FirebaseIdToken
+	}
+	return ""
+}
+
+type VerifyFirebaseTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	User          *AuthUser              `protobuf:"bytes,4,opt,name=user,proto3" json:"user,omitempty"`
+	IsNewUser     bool                   `protobuf:"varint,5,opt,name=is_new_user,json=isNewUser,proto3" json:"is_new_user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VerifyFirebaseTokenResponse) Reset() {
+	*x = VerifyFirebaseTokenResponse{}
+	mi := &file_private_auth_auth_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VerifyFirebaseTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VerifyFirebaseTokenResponse) ProtoMessage() {}
+
+func (x *VerifyFirebaseTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_private_auth_auth_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VerifyFirebaseTokenResponse.ProtoReflect.Descriptor instead.
+func (*VerifyFirebaseTokenResponse) Descriptor() ([]byte, []int) {
+	return file_private_auth_auth_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *VerifyFirebaseTokenResponse) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *VerifyFirebaseTokenResponse) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+func (x *VerifyFirebaseTokenResponse) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+func (x *VerifyFirebaseTokenResponse) GetUser() *AuthUser {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
+func (x *VerifyFirebaseTokenResponse) GetIsNewUser() bool {
+	if x != nil {
+		return x.IsNewUser
+	}
+	return false
+}
+
+type AuthUser struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	PhoneNumber   string                 `protobuf:"bytes,3,opt,name=phone_number,json=phoneNumber,proto3" json:"phone_number,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,4,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	PhotoUrl      string                 `protobuf:"bytes,5,opt,name=photo_url,json=photoUrl,proto3" json:"photo_url,omitempty"`
+	AuthProvider  string                 `protobuf:"bytes,6,opt,name=auth_provider,json=authProvider,proto3" json:"auth_provider,omitempty"`
+	FirebaseUid   string                 `protobuf:"bytes,7,opt,name=firebase_uid,json=firebaseUid,proto3" json:"firebase_uid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthUser) Reset() {
+	*x = AuthUser{}
+	mi := &file_private_auth_auth_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthUser) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthUser) ProtoMessage() {}
+
+func (x *AuthUser) ProtoReflect() protoreflect.Message {
+	mi := &file_private_auth_auth_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthUser.ProtoReflect.Descriptor instead.
+func (*AuthUser) Descriptor() ([]byte, []int) {
+	return file_private_auth_auth_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *AuthUser) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *AuthUser) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *AuthUser) GetPhoneNumber() string {
+	if x != nil {
+		return x.PhoneNumber
+	}
+	return ""
+}
+
+func (x *AuthUser) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *AuthUser) GetPhotoUrl() string {
+	if x != nil {
+		return x.PhotoUrl
+	}
+	return ""
+}
+
+func (x *AuthUser) GetAuthProvider() string {
+	if x != nil {
+		return x.AuthProvider
+	}
+	return ""
+}
+
+func (x *AuthUser) GetFirebaseUid() string {
+	if x != nil {
+		return x.FirebaseUid
+	}
+	return ""
+}
+
 var File_private_auth_auth_proto protoreflect.FileDescriptor
 
 const file_private_auth_auth_proto_rawDesc = "" +
@@ -552,12 +764,30 @@ const file_private_auth_auth_proto_rawDesc = "" +
 	"\x12RevokeTokenRequest\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"/\n" +
 	"\x13RevokeTokenResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\xec\x02\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"H\n" +
+	"\x1aVerifyFirebaseTokenRequest\x12*\n" +
+	"\x11firebase_id_token\x18\x01 \x01(\tR\x0ffirebaseIdToken\"\xec\x01\n" +
+	"\x1bVerifyFirebaseTokenResponse\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
+	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x129\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12*\n" +
+	"\x04user\x18\x04 \x01(\v2\x16.private.auth.AuthUserR\x04user\x12\x1e\n" +
+	"\vis_new_user\x18\x05 \x01(\bR\tisNewUser\"\xe4\x01\n" +
+	"\bAuthUser\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12!\n" +
+	"\fphone_number\x18\x03 \x01(\tR\vphoneNumber\x12!\n" +
+	"\fdisplay_name\x18\x04 \x01(\tR\vdisplayName\x12\x1b\n" +
+	"\tphoto_url\x18\x05 \x01(\tR\bphotoUrl\x12#\n" +
+	"\rauth_provider\x18\x06 \x01(\tR\fauthProvider\x12!\n" +
+	"\ffirebase_uid\x18\a \x01(\tR\vfirebaseUid2\xd8\x03\n" +
 	"\vAuthService\x12X\n" +
 	"\rValidateToken\x12\".private.auth.ValidateTokenRequest\x1a#.private.auth.ValidateTokenResponse\x12X\n" +
 	"\rGenerateToken\x12\".private.auth.GenerateTokenRequest\x1a#.private.auth.GenerateTokenResponse\x12U\n" +
 	"\fRefreshToken\x12!.private.auth.RefreshTokenRequest\x1a\".private.auth.RefreshTokenResponse\x12R\n" +
-	"\vRevokeToken\x12 .private.auth.RevokeTokenRequest\x1a!.private.auth.RevokeTokenResponseB6Z4github.com/yourorg/monorepo/gen/go/private/auth;authb\x06proto3"
+	"\vRevokeToken\x12 .private.auth.RevokeTokenRequest\x1a!.private.auth.RevokeTokenResponse\x12j\n" +
+	"\x13VerifyFirebaseToken\x12(.private.auth.VerifyFirebaseTokenRequest\x1a).private.auth.VerifyFirebaseTokenResponseB6Z4github.com/yourorg/monorepo/gen/go/private/auth;authb\x06proto3"
 
 var (
 	file_private_auth_auth_proto_rawDescOnce sync.Once
@@ -571,37 +801,44 @@ func file_private_auth_auth_proto_rawDescGZIP() []byte {
 	return file_private_auth_auth_proto_rawDescData
 }
 
-var file_private_auth_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_private_auth_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_private_auth_auth_proto_goTypes = []any{
-	(*TokenInfo)(nil),             // 0: private.auth.TokenInfo
-	(*ValidateTokenRequest)(nil),  // 1: private.auth.ValidateTokenRequest
-	(*ValidateTokenResponse)(nil), // 2: private.auth.ValidateTokenResponse
-	(*GenerateTokenRequest)(nil),  // 3: private.auth.GenerateTokenRequest
-	(*GenerateTokenResponse)(nil), // 4: private.auth.GenerateTokenResponse
-	(*RefreshTokenRequest)(nil),   // 5: private.auth.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),  // 6: private.auth.RefreshTokenResponse
-	(*RevokeTokenRequest)(nil),    // 7: private.auth.RevokeTokenRequest
-	(*RevokeTokenResponse)(nil),   // 8: private.auth.RevokeTokenResponse
-	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
+	(*TokenInfo)(nil),                   // 0: private.auth.TokenInfo
+	(*ValidateTokenRequest)(nil),        // 1: private.auth.ValidateTokenRequest
+	(*ValidateTokenResponse)(nil),       // 2: private.auth.ValidateTokenResponse
+	(*GenerateTokenRequest)(nil),        // 3: private.auth.GenerateTokenRequest
+	(*GenerateTokenResponse)(nil),       // 4: private.auth.GenerateTokenResponse
+	(*RefreshTokenRequest)(nil),         // 5: private.auth.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),        // 6: private.auth.RefreshTokenResponse
+	(*RevokeTokenRequest)(nil),          // 7: private.auth.RevokeTokenRequest
+	(*RevokeTokenResponse)(nil),         // 8: private.auth.RevokeTokenResponse
+	(*VerifyFirebaseTokenRequest)(nil),  // 9: private.auth.VerifyFirebaseTokenRequest
+	(*VerifyFirebaseTokenResponse)(nil), // 10: private.auth.VerifyFirebaseTokenResponse
+	(*AuthUser)(nil),                    // 11: private.auth.AuthUser
+	(*timestamppb.Timestamp)(nil),       // 12: google.protobuf.Timestamp
 }
 var file_private_auth_auth_proto_depIdxs = []int32{
-	9, // 0: private.auth.TokenInfo.expires_at:type_name -> google.protobuf.Timestamp
-	0, // 1: private.auth.ValidateTokenResponse.token_info:type_name -> private.auth.TokenInfo
-	9, // 2: private.auth.GenerateTokenResponse.expires_at:type_name -> google.protobuf.Timestamp
-	9, // 3: private.auth.RefreshTokenResponse.expires_at:type_name -> google.protobuf.Timestamp
-	1, // 4: private.auth.AuthService.ValidateToken:input_type -> private.auth.ValidateTokenRequest
-	3, // 5: private.auth.AuthService.GenerateToken:input_type -> private.auth.GenerateTokenRequest
-	5, // 6: private.auth.AuthService.RefreshToken:input_type -> private.auth.RefreshTokenRequest
-	7, // 7: private.auth.AuthService.RevokeToken:input_type -> private.auth.RevokeTokenRequest
-	2, // 8: private.auth.AuthService.ValidateToken:output_type -> private.auth.ValidateTokenResponse
-	4, // 9: private.auth.AuthService.GenerateToken:output_type -> private.auth.GenerateTokenResponse
-	6, // 10: private.auth.AuthService.RefreshToken:output_type -> private.auth.RefreshTokenResponse
-	8, // 11: private.auth.AuthService.RevokeToken:output_type -> private.auth.RevokeTokenResponse
-	8, // [8:12] is the sub-list for method output_type
-	4, // [4:8] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	12, // 0: private.auth.TokenInfo.expires_at:type_name -> google.protobuf.Timestamp
+	0,  // 1: private.auth.ValidateTokenResponse.token_info:type_name -> private.auth.TokenInfo
+	12, // 2: private.auth.GenerateTokenResponse.expires_at:type_name -> google.protobuf.Timestamp
+	12, // 3: private.auth.RefreshTokenResponse.expires_at:type_name -> google.protobuf.Timestamp
+	12, // 4: private.auth.VerifyFirebaseTokenResponse.expires_at:type_name -> google.protobuf.Timestamp
+	11, // 5: private.auth.VerifyFirebaseTokenResponse.user:type_name -> private.auth.AuthUser
+	1,  // 6: private.auth.AuthService.ValidateToken:input_type -> private.auth.ValidateTokenRequest
+	3,  // 7: private.auth.AuthService.GenerateToken:input_type -> private.auth.GenerateTokenRequest
+	5,  // 8: private.auth.AuthService.RefreshToken:input_type -> private.auth.RefreshTokenRequest
+	7,  // 9: private.auth.AuthService.RevokeToken:input_type -> private.auth.RevokeTokenRequest
+	9,  // 10: private.auth.AuthService.VerifyFirebaseToken:input_type -> private.auth.VerifyFirebaseTokenRequest
+	2,  // 11: private.auth.AuthService.ValidateToken:output_type -> private.auth.ValidateTokenResponse
+	4,  // 12: private.auth.AuthService.GenerateToken:output_type -> private.auth.GenerateTokenResponse
+	6,  // 13: private.auth.AuthService.RefreshToken:output_type -> private.auth.RefreshTokenResponse
+	8,  // 14: private.auth.AuthService.RevokeToken:output_type -> private.auth.RevokeTokenResponse
+	10, // 15: private.auth.AuthService.VerifyFirebaseToken:output_type -> private.auth.VerifyFirebaseTokenResponse
+	11, // [11:16] is the sub-list for method output_type
+	6,  // [6:11] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_private_auth_auth_proto_init() }
@@ -615,7 +852,7 @@ func file_private_auth_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_private_auth_auth_proto_rawDesc), len(file_private_auth_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

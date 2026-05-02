@@ -7,7 +7,8 @@ import (
 // Config extends the base config with auth-service specific configuration
 type Config struct {
 	config.Config `mapstructure:",squash"`
-	JWT           JWTConfig `mapstructure:"jwt"`
+	JWT           JWTConfig      `mapstructure:"jwt"`
+	Firebase      FirebaseConfig `mapstructure:"firebase"`
 }
 
 // JWTConfig contains JWT configuration
@@ -16,6 +17,13 @@ type JWTConfig struct {
 	AccessTokenTTL  int    `mapstructure:"access_token_ttl"`  // in seconds
 	RefreshTokenTTL int    `mapstructure:"refresh_token_ttl"` // in seconds
 	Issuer          string `mapstructure:"issuer"`
+}
+
+// FirebaseConfig contains Firebase Authentication configuration
+type FirebaseConfig struct {
+	Enabled         bool   `mapstructure:"enabled"`
+	CredentialsFile string `mapstructure:"credentials_file"` // path to Firebase service account JSON
+	ProjectID       string `mapstructure:"project_id"`       // optional, derived from credentials if empty
 }
 
 // Load loads configuration from file and environment variables

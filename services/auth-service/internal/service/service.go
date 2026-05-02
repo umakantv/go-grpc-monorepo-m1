@@ -10,6 +10,7 @@ import (
 
 	auth "github.com/yourorg/monorepo/gen/go/private/auth"
 	"github.com/yourorg/monorepo/services/auth-service/internal/config"
+	"github.com/yourorg/monorepo/services/auth-service/internal/firebase"
 	"github.com/yourorg/monorepo/services/auth-service/internal/repository"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
@@ -23,9 +24,10 @@ import (
 type AuthService struct {
 	auth.UnimplementedAuthServiceServer
 
-	repo   *repository.Repository
-	cfg    *config.JWTConfig
-	logger *zap.Logger
+	repo     *repository.Repository
+	cfg      *config.JWTConfig
+	firebase firebase.Verifier // nil when Firebase is disabled
+	logger   *zap.Logger
 }
 
 // Claims represents JWT claims
@@ -36,12 +38,14 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// NewAuthService creates a new AuthService
-func NewAuthService(repo *repository.Repository, cfg *config.JWTConfig, logger *zap.Logger) *AuthService {
+// NewAuthService creates a new AuthService.
+// The firebase verifier may be nil when Firebase authentication is disabled.
+func NewAuthService(repo *repository.Repository, cfg *config.JWTConfig, fbVerifier firebase.Verifier, logger *zap.Logger) *AuthService {
 	return &AuthService{
-		repo:   repo,
-		cfg:    cfg,
-		logger: logger.Named("auth-service"),
+		repo:     repo,
+		cfg:      cfg,
+		firebase: fbVerifier,
+		logger:   logger.Named("auth-service"),
 	}
 }
 
@@ -271,4 +275,93 @@ func generateID() string {
 	bytes := make([]byte, 16)
 	rand.Read(bytes)
 	return base64.URLEncoding.EncodeToString(bytes)
+}
+
+// VerifyFirebaseToken verifies a Firebase ID token, finds or creates the user
+// in our database, and returns our own JWT access + refresh tokens.
+func (s *AuthService) VerifyFirebaseToken(ctx context.Context, req *auth.VerifyFirebaseTokenRequest) (*auth.VerifyFirebaseTokenResponse, error) {
+	if s.firebase == nil {
+		return nil, status.Error(codes.Unavailable, "firebase authentication is not enabled")
+	}
+
+	idToken := req.GetFirebaseIdToken()
+	if idToken == "" {
+		return nil, status.Error(codes.InvalidArgument, "firebase_id_token is required")
+	}
+
+	// Verify the Firebase ID token.
+	fbInfo, err := s.firebase.VerifyIDToken(ctx, idToken)
+	if err != nil {
+		s.logger.Warn("firebase token verification failed", zap.Error(err))
+		return nil, status.Error(codes.Unauthenticated, "invalid firebase token")
+	}
+
+	// Find or create the user in our database.
+	isNewUser := false
+	user, err := s.repo.GetUserByFirebaseUID(ctx, fbInfo.UID)
+	if err != nil {
+		if !errors.Is(err, repository.ErrUserNotFound) {
+			s.logger.Error("failed to lookup user by firebase uid", zap.Error(err))
+			return nil, status.Error(codes.Internal, "failed to verify firebase token")
+		}
+
+		// New user — create a record.
+		user = &repository.AuthUser{
+			ID:           generateID(),
+			FirebaseUID:  fbInfo.UID,
+			Email:        fbInfo.Email,
+			PhoneNumber:  fbInfo.PhoneNumber,
+			DisplayName:  fbInfo.DisplayName,
+			PhotoURL:     fbInfo.PhotoURL,
+			AuthProvider: fbInfo.Provider,
+		}
+
+		user, err = s.repo.CreateAuthUser(ctx, user)
+		if err != nil {
+			s.logger.Error("failed to create auth user", zap.Error(err))
+			return nil, status.Error(codes.Internal, "failed to create user")
+		}
+		isNewUser = true
+		s.logger.Info("new firebase user created",
+			zap.String("user_id", user.ID),
+			zap.String("firebase_uid", fbInfo.UID),
+			zap.String("provider", fbInfo.Provider),
+		)
+	} else {
+		// Existing user — refresh their profile info.
+		user.Email = fbInfo.Email
+		user.PhoneNumber = fbInfo.PhoneNumber
+		user.DisplayName = fbInfo.DisplayName
+		user.PhotoURL = fbInfo.PhotoURL
+		user.AuthProvider = fbInfo.Provider
+		if err := s.repo.UpdateAuthUser(ctx, user); err != nil {
+			s.logger.Warn("failed to update auth user profile", zap.Error(err))
+		}
+	}
+
+	// Generate our own JWT tokens.
+	tokenResp, err := s.GenerateToken(ctx, &auth.GenerateTokenRequest{
+		UserId: user.ID,
+		Email:  user.Email,
+		Roles:  []string{"user"},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &auth.VerifyFirebaseTokenResponse{
+		AccessToken:  tokenResp.GetAccessToken(),
+		RefreshToken: tokenResp.GetRefreshToken(),
+		ExpiresAt:    tokenResp.GetExpiresAt(),
+		IsNewUser:    isNewUser,
+		User: &auth.AuthUser{
+			UserId:       user.ID,
+			Email:        user.Email,
+			PhoneNumber:  user.PhoneNumber,
+			DisplayName:  user.DisplayName,
+			PhotoUrl:     user.PhotoURL,
+			AuthProvider: user.AuthProvider,
+			FirebaseUid:  user.FirebaseUID,
+		},
+	}, nil
 }

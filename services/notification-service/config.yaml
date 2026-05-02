@@ -1,0 +1,29 @@
+service:
+  name: notification-service
+  env: development
+
+grpc:
+  port: 9093
+
+http:
+  enabled: false  # internal service - no HTTP endpoint
+
+logging:
+  level: debug
+  format: console
+
+database:
+  enabled: true
+  driver: postgres # or "sqlite" for local dev/test
+  host: localhost
+  port: 5432
+  name: notificationdb
+  user: postgres
+  password: postgres
+  ssl_mode: disable
+  # path: ":memory:"               # for in-memory SQLite (test)
+  # path: ./data/notification.db   # for file-based SQLite (local dev)
+
+firebase:
+  credentials_file: ""   # path to Firebase service account JSON
+  project_id: ""

@@ -29,3 +29,8 @@ jwt:
   access_token_ttl: 3600      # 1 hour
   refresh_token_ttl: 604800   # 7 days
   issuer: yourorg-monorepo
+
+firebase:
+  enabled: false
+  credentials_file: ""   # path to Firebase service account JSON
+  project_id: ""         # optional, derived from credentials if empty

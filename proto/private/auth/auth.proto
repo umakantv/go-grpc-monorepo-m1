@@ -20,6 +20,10 @@ service AuthService {
   
   // RevokeToken revokes a token (for logout)
   rpc RevokeToken(RevokeTokenRequest) returns (RevokeTokenResponse);
+
+  // VerifyFirebaseToken verifies a Firebase ID token, finds/creates the user,
+  // and returns our own JWT access + refresh tokens.
+  rpc VerifyFirebaseToken(VerifyFirebaseTokenRequest) returns (VerifyFirebaseTokenResponse);
 }
 
 message TokenInfo {
@@ -68,4 +72,28 @@ message RevokeTokenRequest {
 
 message RevokeTokenResponse {
   bool success = 1;
+}
+
+// Firebase authentication messages
+
+message VerifyFirebaseTokenRequest {
+  string firebase_id_token = 1;
+}
+
+message VerifyFirebaseTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp expires_at = 3;
+  AuthUser user = 4;
+  bool is_new_user = 5;
+}
+
+message AuthUser {
+  string user_id = 1;
+  string email = 2;
+  string phone_number = 3;
+  string display_name = 4;
+  string photo_url = 5;
+  string auth_provider = 6;
+  string firebase_uid = 7;
 }

@@ -1,0 +1,35 @@
+service:
+  name: file-service
+  env: development
+
+grpc:
+  port: 9092
+
+http:
+  enabled: true
+  port: 8082
+
+logging:
+  level: debug
+  format: console
+
+database:
+  enabled: true
+  driver: postgres # or "sqlite" for local dev/test
+  host: localhost
+  port: 5434
+  name: filedb
+  user: postgres
+  password: postgres
+  ssl_mode: disable
+  # path: ":memory:"      # for in-memory SQLite (test)
+  # path: ./data/file.db  # for file-based SQLite (local dev)
+
+s3:
+  region: us-east-1
+  bucket: my-app-uploads
+  access_key_id: ""
+  secret_access_key: ""
+  endpoint: ""              # set for MinIO / S3-compatible stores
+  force_path_style: false   # set true for MinIO
+  signed_url_expiry: 900    # 15 minutes

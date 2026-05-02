@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package private.notification;
+
+option go_package = "github.com/yourorg/monorepo/gen/go/private/notification;notification";
+
+import "google/protobuf/timestamp.proto";
+
+// NotificationService provides internal push-notification operations.
+// This service is NOT exposed via HTTP - gRPC only.
+service NotificationService {
+  // Device token management
+  rpc RegisterDeviceToken(RegisterDeviceTokenRequest) returns (RegisterDeviceTokenResponse);
+  rpc UnregisterDeviceToken(UnregisterDeviceTokenRequest) returns (UnregisterDeviceTokenResponse);
+  rpc ListDeviceTokens(ListDeviceTokensRequest) returns (ListDeviceTokensResponse);
+
+  // Send notifications
+  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse);
+  rpc SendBulkNotification(SendBulkNotificationRequest) returns (SendBulkNotificationResponse);
+
+  // Notification history
+  rpc GetNotification(GetNotificationRequest) returns (GetNotificationResponse);
+  rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse);
+}
+
+// ---- Device token messages ----
+
+message DeviceToken {
+  string id = 1;
+  string user_id = 2;
+  string token = 3;
+  string platform = 4;          // "ios", "android", "web"
+  string device_name = 5;
+  bool active = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message RegisterDeviceTokenRequest {
+  string user_id = 1;
+  string token = 2;
+  string platform = 3;
+  string device_name = 4;
+}
+
+message RegisterDeviceTokenResponse {
+  DeviceToken device_token = 1;
+}
+
+message UnregisterDeviceTokenRequest {
+  string token = 1;
+}
+
+message UnregisterDeviceTokenResponse {
+  bool success = 1;
+}
+
+message ListDeviceTokensRequest {
+  string user_id = 1;
+}
+
+message ListDeviceTokensResponse {
+  repeated DeviceToken device_tokens = 1;
+}
+
+// ---- Notification messages ----
+
+message Notification {
+  string id = 1;
+  string user_id = 2;
+  string title = 3;
+  string body = 4;
+  map<string, string> data = 5;
+  string image_url = 6;
+  string status = 7;            // "pending", "sent", "failed"
+  string failure_reason = 8;
+  google.protobuf.Timestamp sent_at = 9;
+  google.protobuf.Timestamp created_at = 10;
+}
+
+message SendNotificationRequest {
+  string user_id = 1;
+  string title = 2;
+  string body = 3;
+  map<string, string> data = 4;
+  string image_url = 5;
+}
+
+message SendNotificationResponse {
+  Notification notification = 1;
+  int32 devices_sent = 2;
+  int32 devices_failed = 3;
+}
+
+message SendBulkNotificationRequest {
+  repeated string user_ids = 1;
+  string title = 2;
+  string body = 3;
+  map<string, string> data = 4;
+  string image_url = 5;
+}
+
+message SendBulkNotificationResponse {
+  int32 total_users = 1;
+  int32 total_devices_sent = 2;
+  int32 total_devices_failed = 3;
+  repeated Notification notifications = 4;
+}
+
+message GetNotificationRequest {
+  string notification_id = 1;
+}
+
+message GetNotificationResponse {
+  Notification notification = 1;
+}
+
+message ListNotificationsRequest {
+  string user_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListNotificationsResponse {
+  repeated Notification notifications = 1;
+  string next_page_token = 2;
+}

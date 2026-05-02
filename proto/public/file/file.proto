@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package public.file;
+
+option go_package = "github.com/yourorg/monorepo/gen/go/public/file;file";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// FileService provides public-facing file upload operations
+service FileService {
+  // CreateUploadSignedURL generates a pre-signed S3 URL for the client to upload a file
+  rpc CreateUploadSignedURL(CreateUploadSignedURLRequest) returns (CreateUploadSignedURLResponse) {
+    option (google.api.http) = {
+      post: "/v1/files/upload-signed-url"
+      body: "*"
+    };
+  }
+
+  // ConfirmUpload marks a file as successfully uploaded
+  rpc ConfirmUpload(ConfirmUploadRequest) returns (ConfirmUploadResponse) {
+    option (google.api.http) = {
+      post: "/v1/files/{file_id}/confirm"
+    };
+  }
+
+  // GetFile retrieves file metadata by ID
+  rpc GetFile(GetFileRequest) returns (GetFileResponse) {
+    option (google.api.http) = {
+      get: "/v1/files/{file_id}"
+    };
+  }
+
+  // DeleteFile soft-deletes a file
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse) {
+    option (google.api.http) = {
+      delete: "/v1/files/{file_id}"
+    };
+  }
+
+  // ListFiles lists files with optional filtering by owner
+  rpc ListFiles(ListFilesRequest) returns (ListFilesResponse) {
+    option (google.api.http) = {
+      get: "/v1/files"
+    };
+  }
+}
+
+// File represents a file record
+message File {
+  string id = 1;
+  string filename = 2;
+  string mimetype = 3;
+  string location = 4;         // logical path prefix in S3 (e.g. "avatars", "documents")
+  int64 size_kb = 5;
+  string owner_entity = 6;     // e.g. "user", "product", "order"
+  string owner_entity_id = 7;
+  string status = 8;           // "pending", "uploaded", "deleted"
+  string s3_key = 9;           // full S3 object key
+  string url = 10;             // public/accessible URL to view the file
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+message CreateUploadSignedURLRequest {
+  string filename = 1;
+  string mimetype = 2;
+  string location = 3;
+  int64 size_kb = 4;
+  string owner_entity = 5;
+  string owner_entity_id = 6;
+}
+
+message CreateUploadSignedURLResponse {
+  File file = 1;
+  string signed_url = 2;       // pre-signed PUT URL for the client to upload to S3
+}
+
+message ConfirmUploadRequest {
+  string file_id = 1;
+}
+
+message ConfirmUploadResponse {
+  File file = 1;
+}
+
+message GetFileRequest {
+  string file_id = 1;
+}
+
+message GetFileResponse {
+  File file = 1;
+}
+
+message DeleteFileRequest {
+  string file_id = 1;
+}
+
+message DeleteFileResponse {}
+
+message ListFilesRequest {
+  string owner_entity = 1;
+  string owner_entity_id = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+}
+
+message ListFilesResponse {
+  repeated File files = 1;
+  string next_page_token = 2;
+}

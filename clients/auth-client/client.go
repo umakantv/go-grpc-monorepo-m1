@@ -78,6 +78,13 @@ func (c *Client) RevokeToken(ctx context.Context, token string) (*auth.RevokeTok
 	})
 }
 
+// VerifyFirebaseToken verifies a Firebase ID token and returns our JWT tokens + user info
+func (c *Client) VerifyFirebaseToken(ctx context.Context, firebaseIDToken string) (*auth.VerifyFirebaseTokenResponse, error) {
+	return c.client.VerifyFirebaseToken(ctx, &auth.VerifyFirebaseTokenRequest{
+		FirebaseIdToken: firebaseIDToken,
+	})
+}
+
 // IsHealthy checks if the auth service is healthy
 func (c *Client) IsHealthy(ctx context.Context) error {
 	// Simple connectivity check - try to validate an empty token

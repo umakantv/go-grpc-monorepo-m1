@@ -1,35 +1,19 @@
 version: '3.8'
 
 services:
-  # Databases
-  user-db:
+  # Shared database — one Postgres container, separate database per service
+  postgres:
     image: postgres:15-alpine
-    container_name: user-db
+    container_name: postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: userdb
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
-      - user-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  auth-db:
-    image: postgres:15-alpine
-    container_name: auth-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: authdb
-    ports:
-      - "5433:5432"
-    volumes:
-      - auth-db-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -47,8 +31,13 @@ services:
       - "9090:9090"  # gRPC
     environment:
       - AUTH_SERVICE_ADDR=auth-service:9091
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=userdb
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
     depends_on:
-      user-db:
+      postgres:
         condition: service_healthy
       auth-service:
         condition: service_started
@@ -63,11 +52,66 @@ services:
       - "9091:9091"  # gRPC only
     environment:
       - JWT_SECRET=your-super-secret-key-change-in-production
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=authdb
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      # Firebase Authentication (uncomment to enable)
+      # - FIREBASE_ENABLED=true
+      # - FIREBASE_PROJECT_ID=your-firebase-project-id
+      # - FIREBASE_CREDENTIALS_FILE=/etc/firebase/service-account.json
+    # volumes:
+    #   - ./firebase-service-account.json:/etc/firebase/service-account.json:ro
     depends_on:
-      auth-db:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  file-service:
+    build:
+      context: .
+      dockerfile: services/file-service/Dockerfile
+    container_name: file-service
+    ports:
+      - "8082:8082"  # HTTP
+      - "9092:9092"  # gRPC
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=filedb
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      - S3_REGION=us-east-1
+      - S3_BUCKET=my-app-uploads
+      # - S3_ACCESS_KEY_ID=your-key
+      # - S3_SECRET_ACCESS_KEY=your-secret
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    container_name: notification-service
+    ports:
+      - "9093:9093"  # gRPC only
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=notificationdb
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      # - FIREBASE_CREDENTIALS_FILE=/etc/firebase/service-account.json
+      # - FIREBASE_PROJECT_ID=your-firebase-project-id
+    # volumes:
+    #   - ./firebase-service-account.json:/etc/firebase/service-account.json:ro
+    depends_on:
+      postgres:
         condition: service_healthy
     restart: unless-stopped
 
 volumes:
-  user-db-data:
-  auth-db-data:
+  postgres-data:

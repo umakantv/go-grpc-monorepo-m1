@@ -14,9 +14,11 @@ import (
 	auth "github.com/yourorg/monorepo/gen/go/private/auth"
 	pkgdb "github.com/yourorg/monorepo/pkg/database"
 	"github.com/yourorg/monorepo/pkg/logging"
+	pkgmigrate "github.com/yourorg/monorepo/pkg/migrate"
 	"github.com/yourorg/monorepo/pkg/metrics"
 	"github.com/yourorg/monorepo/pkg/middleware"
 	"github.com/yourorg/monorepo/services/auth-service/internal/config"
+	"github.com/yourorg/monorepo/services/auth-service/internal/firebase"
 	"github.com/yourorg/monorepo/services/auth-service/internal/repository"
 	"github.com/yourorg/monorepo/services/auth-service/internal/service"
 	"go.uber.org/zap"
@@ -58,11 +60,32 @@ func main() {
 		}
 		defer db.Close()
 		logger.Info("connected to database")
+
+		// Run database migrations.
+		if err := pkgmigrate.Up(db, cfg.Database.Driver, "migrations"); err != nil {
+			logger.Fatal("failed to run database migrations", zap.Error(err))
+		}
+		logger.Info("database migrations applied")
+	}
+
+	// Initialize Firebase verifier (if enabled)
+	var fbVerifier firebase.Verifier
+	if cfg.Firebase.Enabled {
+		var err error
+		fbVerifier, err = firebase.NewVerifier(
+			context.Background(),
+			cfg.Firebase.CredentialsFile,
+			cfg.Firebase.ProjectID,
+		)
+		if err != nil {
+			logger.Fatal("failed to initialise firebase", zap.Error(err))
+		}
+		logger.Info("firebase authentication enabled")
 	}
 
 	// Create repository and service
 	repo := repository.NewRepository(db)
-	authService := service.NewAuthService(repo, &cfg.JWT, logger.Logger)
+	authService := service.NewAuthService(repo, &cfg.JWT, fbVerifier, logger.Logger)
 
 	// Initialize metrics
 	var appMetrics *metrics.Metrics
